@@ -8,6 +8,13 @@
         if builtins.isAttrs x
         then map (name: x.${name} // {inherit name;}) (builtins.attrNames x)
         else x;
+      flatten = builtins.foldl' (acc: x:
+        acc
+        ++ (
+          if builtins.isList x
+          then flatten x
+          else [x]
+        )) [];
     in rec {
       mkChain = {
         name,
@@ -46,7 +53,7 @@
             then [h]
             else []
           )
-          ++ rules
+          ++ (flatten rules)
           ++ (
             if h == "" && policy != null
             then [policy]
@@ -79,7 +86,10 @@
 
       ct_state = "ct state vmap { related : accept, established : accept, invalid : drop }";
       icmpv6 = "icmpv6 type { nd-neighbor-solicit, nd-router-advert, nd-neighbor-advert } accept";
-      allow_icmp_pings = "icmp type echo-request accept; icmpv6 type echo-request accept;";
+      allow_icmp_pings = [
+        "icmp type echo-request accept"
+        "icmpv6 type echo-request accept"
+      ];
       default_input = [ct_state icmpv6];
       default_forward = [ct_state];
     };
