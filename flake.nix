@@ -92,6 +92,7 @@
       ];
       default_input = [ct_state icmpv6];
       default_forward = [ct_state];
+      default_output = [ct_state];
     };
   };
 }
